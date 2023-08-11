@@ -12,7 +12,11 @@ jobs:
       - name: Install SourceMod
         uses: KatsuteTF/Workflows/actions/setup-sourcepawn@main
 
-      - name: Install TF2Attributes
+      - name: mkdir include
+        shell: bash
+        run: mkdir -p addons/sourcemod/include
+
+      - name: Install TF2Utils
         uses: KatsuteTF/Workflows/actions/curl@main
         with:
           url: https://raw.githubusercontent.com/nosoop/SM-TFUtils/master/scripting/include/tf2utils.inc
