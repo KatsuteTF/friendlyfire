@@ -28,10 +28,10 @@ static ArrayList g_entityProperties;
 enum struct EntityProperties
 {
 	int ref;
-	
+
 	int teamCount;
 	TFTeam teamHistory[MAX_HISTORY_ENTRIES];
-	
+
 	TFTeam preHookTeam;
 	TFTeam preHookDisguiseTeam;
 }
@@ -44,27 +44,27 @@ methodmap Entity
 		{
 			return view_as<Entity>(INVALID_ENT_REFERENCE);
 		}
-		
+
 		if (!g_entityProperties)
 		{
 			g_entityProperties = new ArrayList(sizeof(EntityProperties));
 		}
-		
+
 		// Convert it twice to ensure we store it as an entity reference
 		int ref = EntIndexToEntRef(EntRefToEntIndex(entity));
-		
+
 		if (g_entityProperties.FindValue(ref, EntityProperties::ref) == -1)
 		{
 			// Fill basic properties
 			EntityProperties properties;
 			properties.ref = ref;
-			
+
 			g_entityProperties.PushArray(properties);
 		}
-		
+
 		return view_as<Entity>(ref);
 	}
-	
+
 	property int Ref
 	{
 		public get()
@@ -72,7 +72,7 @@ methodmap Entity
 			return view_as<int>(this);
 		}
 	}
-	
+
 	property int ListIndex
 	{
 		public get()
@@ -80,7 +80,7 @@ methodmap Entity
 			return g_entityProperties.FindValue(view_as<int>(this), EntityProperties::ref);
 		}
 	}
-	
+
 	property int TeamCount
 	{
 		public get()
@@ -92,7 +92,7 @@ methodmap Entity
 			g_entityProperties.Set(this.ListIndex, count, EntityProperties::teamCount);
 		}
 	}
-	
+
 	property TFTeam PreHookTeam
 	{
 		public get()
@@ -104,7 +104,7 @@ methodmap Entity
 			g_entityProperties.Set(this.ListIndex, team, EntityProperties::preHookTeam);
 		}
 	}
-	
+
 	property TFTeam PreHookDisguiseTeam
 	{
 		public get()
@@ -116,19 +116,19 @@ methodmap Entity
 			g_entityProperties.Set(this.ListIndex, team, EntityProperties::preHookDisguiseTeam);
 		}
 	}
-	
+
 	public void SetTeam(TFTeam team)
 	{
 		int index = this.TeamCount++;
 		this.SetTeamInternal(TF2_GetEntityTeam(this.Ref), index);
 		TF2_SetEntityTeam(this.Ref, team);
 	}
-	
+
 	public void ChangeToSpectator()
 	{
 		this.SetTeam(TFTeam_Spectator);
 	}
-	
+
 	// Creates a history entry regardless of whether we already are in our original team or not
 	public void ChangeToOriginalTeam()
 	{
@@ -141,14 +141,14 @@ methodmap Entity
 			this.SetTeam(TF2_GetEntityTeam(this.Ref));
 		}
 	}
-	
+
 	public void ResetTeam()
 	{
 		int index = --this.TeamCount;
 		TFTeam team = this.GetTeamInternal(index);
 		TF2_SetEntityTeam(this.Ref, team);
 	}
-	
+
 	public void CheckArrayBounds(int index)
 	{
 		if (index < 0 || index >= sizeof(EntityProperties::teamHistory))
@@ -158,11 +158,11 @@ methodmap Entity
 			SetFailState("Array index out-of-bounds (index %d, limit %d)", index, sizeof(EntityProperties::teamHistory));
 		}
 	}
-	
+
 	public TFTeam GetTeamInternal(int index)
 	{
 		this.CheckArrayBounds(index);
-		
+
 		for (int i = 0; i < sizeof(g_entityProperties); i++)
 		{
 			EntityProperties properties;
@@ -171,15 +171,15 @@ methodmap Entity
 				return properties.teamHistory[index];
 			}
 		}
-		
+
 		LogError("Failed to get team number for entity %d (index %d)", this, index);
 		return TFTeam_Unassigned;
 	}
-	
+
 	public void SetTeamInternal(TFTeam team, int index)
 	{
 		this.CheckArrayBounds(index);
-		
+
 		for (int i = 0; i < sizeof(g_entityProperties); i++)
 		{
 			EntityProperties properties;
@@ -190,15 +190,15 @@ methodmap Entity
 				return;
 			}
 		}
-		
+
 		LogError("Failed to set team number for entity %d (index %d)", this, index);
 	}
-	
+
 	public void Destroy()
 	{
 		if (this.ListIndex == -1)
 			return;
-		
+
 		// Remove the entry from local storage
 		g_entityProperties.Erase(this.ListIndex);
 	}

@@ -33,15 +33,15 @@ static StringMap g_conVars;
 void ConVars_Initialize()
 {
 	g_conVars = new StringMap();
-	
+
 	CreateConVar("sm_friendlyfire_version", PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	sm_friendlyfire_medic_allow_healing = CreateConVar("sm_friendlyfire_medic_allow_healing", "0", "Whether Medics are allowed to heal teammates during friendly fire.", _, true, 0.0, true, 1.0);
-	
+
 	mp_friendlyfire = FindConVar("mp_friendlyfire");
 	mp_friendlyfire.AddChangeHook(ConVarChanged_FriendlyFire);
-	
-	ConVars_AddConVar("tf_avoidteammates", "0");
-	ConVars_AddConVar("tf_spawn_glows_duration", "0");
+
+	// ConVars_AddConVar("tf_avoidteammates", "0");
+	// ConVars_AddConVar("tf_spawn_glows_duration", "0");
 }
 
 void ConVars_Toggle(bool enable)
@@ -54,14 +54,14 @@ void ConVars_Toggle(bool enable)
 	{
 		mp_friendlyfire.RemoveChangeHook(ConVarChanged_FriendlyFire);
 	}
-	
+
 	StringMapSnapshot snapshot = g_conVars.Snapshot();
 	for (int i = 0; i < snapshot.Length; i++)
 	{
 		int size = snapshot.KeyBufferSize(i);
 		char[] key = new char[size];
 		snapshot.GetKey(i, key, size);
-		
+
 		if (enable)
 			ConVars_Enable(key);
 		else
@@ -80,7 +80,7 @@ static void ConVars_AddConVar(const char[] name, const char[] value, bool enforc
 		strcopy(info.name, sizeof(info.name), name);
 		strcopy(info.value, sizeof(info.value), value);
 		info.enforce = enforce;
-		
+
 		g_conVars.SetArray(name, info, sizeof(info));
 	}
 	else
@@ -95,11 +95,11 @@ static void ConVars_Enable(const char[] name)
 	if (g_conVars.GetArray(name, data, sizeof(data)))
 	{
 		ConVar convar = FindConVar(data.name);
-		
+
 		// Store the current value so we can later reset the ConVar to it
 		convar.GetString(data.initialValue, sizeof(data.initialValue));
 		g_conVars.SetArray(name, data, sizeof(data));
-		
+
 		// Update the current value
 		convar.SetString(data.value);
 		convar.AddChangeHook(OnConVarChanged);
@@ -112,9 +112,9 @@ static void ConVars_Disable(const char[] name)
 	if (g_conVars.GetArray(name, data, sizeof(data)))
 	{
 		ConVar convar = FindConVar(data.name);
-		
+
 		g_conVars.SetArray(name, data, sizeof(data));
-		
+
 		// Restore the convar value
 		convar.RemoveChangeHook(OnConVarChanged);
 		convar.SetString(data.initialValue);
@@ -125,7 +125,7 @@ static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 {
 	char name[COMMAND_MAX_LENGTH];
 	convar.GetName(name, sizeof(name));
-	
+
 	ConVarData data;
 	if (g_conVars.GetArray(name, data, sizeof(data)))
 	{
@@ -133,7 +133,7 @@ static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 		{
 			strcopy(data.initialValue, sizeof(data.initialValue), newValue);
 			g_conVars.SetArray(name, data, sizeof(data));
-			
+
 			// Restore our value if needed
 			if (data.enforce)
 				convar.SetString(data.value);

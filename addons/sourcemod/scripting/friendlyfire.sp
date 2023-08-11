@@ -101,10 +101,10 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	RegPluginLibrary("friendlyfire");
-	
+
 	ConVars_Initialize();
 	SDKHooks_Initialize();
-	
+
 	GameData gamedata = new GameData("friendlyfire");
 	if (gamedata)
 	{
@@ -140,7 +140,7 @@ public void OnPluginEnd()
 {
 	if (!g_isEnabled)
 		return;
-	
+
 	TogglePlugin(false);
 }
 
@@ -148,7 +148,7 @@ public void OnClientPutInServer(int client)
 {
 	if (!g_isEnabled)
 		return;
-	
+
 	DHooks_OnClientPutInServer(client);
 	SDKHooks_OnClientPutInServer(client);
 }
@@ -157,7 +157,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (!g_isEnabled || !g_isMapRunning)
 		return;
-	
+
 	DHooks_OnEntityCreated(entity, classname);
 	SDKHooks_OnEntityCreated(entity, classname);
 }
@@ -166,10 +166,10 @@ public void OnEntityDestroyed(int entity)
 {
 	if (!g_isEnabled)
 		return;
-	
+
 	if (!IsValidEntity(entity))
 		return;
-	
+
 	// If an entity was removed prematurely, reset its owner's team as far back as we need to.
 	// This can happen with projectiles when they collide with the world, not calling the post-hook.
 	for (int i = 0; i < Entity(entity).TeamCount; i++)
@@ -180,36 +180,36 @@ public void OnEntityDestroyed(int entity)
 			Entity(owner).ResetTeam();
 		}
 	}
-	
+
 	Entity(entity).Destroy();
 }
 
-public Action TF2_OnPlayerTeleport(int client, int teleporter, bool& result)
-{
-	if (!g_isEnabled)
-		return Plugin_Continue;
-	
-	result = IsObjectFriendly(teleporter, client);
-	return Plugin_Handled;
-}
+// public Action TF2_OnPlayerTeleport(int client, int teleporter, bool& result)
+// {
+// 	if (!g_isEnabled)
+// 		return Plugin_Continue;
+
+// 	result = IsObjectFriendly(teleporter, client);
+// 	return Plugin_Handled;
+// }
 
 void TogglePlugin(bool enable)
 {
 	g_isEnabled = enable;
-	
+
 	ConVars_Toggle(enable);
 	DHooks_Toggle(enable);
-	
+
 	if (enable)
 	{
 		for (int client = 1; client <= MaxClients; client++)
 		{
 			if (!IsClientInGame(client))
 				continue;
-			
+
 			OnClientPutInServer(client);
 		}
-		
+
 		int entity = -1;
 		while ((entity = FindEntityByClassname(entity, "*")) != -1)
 		{
@@ -226,7 +226,7 @@ void TogglePlugin(bool enable)
 		{
 			if (!IsClientInGame(client))
 				continue;
-			
+
 			SDKHooks_UnhookClient(client);
 		}
 	}

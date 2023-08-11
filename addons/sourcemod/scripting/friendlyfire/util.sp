@@ -47,7 +47,7 @@ bool IsEntityClient(int entity)
 int FindParentOwnerEntity(int entity)
 {
 	int parent = -1;
-	
+
 	if (HasEntProp(entity, Prop_Send, "m_hThrower"))
 	{
 		parent = GetEntPropEnt(entity, Prop_Send, "m_hThrower");
@@ -68,7 +68,7 @@ int FindParentOwnerEntity(int entity)
 	{
 		parent = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
 	}
-	
+
 	if (parent != -1 && parent != entity)
 	{
 		return FindParentOwnerEntity(parent);
@@ -108,7 +108,7 @@ bool IsObjectFriendly(int obj, int entity)
 				return true;
 		}
 	}
-	
+
 	return false;
 }
 
