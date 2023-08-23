@@ -657,7 +657,7 @@ static MRESReturn DHookCallback_CTFPipebombLauncher_SecondaryAttack_Pre(int weap
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	if (owner != -1)
 	{
-		SetActiveRound();
+		// SetActiveRound();
 		Entity(owner).ChangeToSpectator();
 	}
 
@@ -684,7 +684,7 @@ static MRESReturn DHookCallback_CTFPipebombLauncher_SecondaryAttack_Post(int wea
 	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
 	if (owner != -1)
 	{
-		ResetActiveRound();
+		// ResetActiveRound();
 		Entity(owner).ResetTeam();
 	}
 
