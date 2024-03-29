@@ -45,11 +45,11 @@ static Handle PrepSDKCall_CBaseEntity_GetNextThink(GameData gamedata)
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CBaseEntity::GetNextThink");
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_Plain);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CBaseEntity::GetNextThink");
-	
+
 	return call;
 }
 
@@ -58,11 +58,11 @@ static Handle PrepSDKCall_CTFSniperRifle_GetPenetrateType(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTFSniperRifle::GetPenetrateType");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CTFSniperRifle::GetPenetrateType");
-	
+
 	return call;
 }
 
@@ -72,11 +72,11 @@ static Handle PrepSDKCall_GetGlobalTeam(GameData gamedata)
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "GetGlobalTeam");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: GetGlobalTeam");
-	
+
 	return call;
 }
 
@@ -85,11 +85,11 @@ static Handle PrepSDKCall_CTeam_AddPlayer(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTeam::AddPlayer");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CTeam::AddPlayer");
-	
+
 	return call;
 }
 
@@ -98,11 +98,11 @@ static Handle PrepSDKCall_CTeam_RemovePlayer(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CTeam::RemovePlayer");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CTeam::RemovePlayer");
-	
+
 	return call;
 }
 
@@ -111,11 +111,11 @@ static Handle PrepSDKCall_CTeam_AddObject(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CTFTeam::AddObject");
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CTFTeam::AddObject");
-	
+
 	return call;
 }
 
@@ -124,11 +124,11 @@ static Handle PrepSDKCall_CTeam_RemoveObject(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Signature, "CTFTeam::RemoveObject");
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CTFTeam::RemoveObject");
-	
+
 	return call;
 }
 
@@ -137,11 +137,11 @@ static Handle PrepSDKCall_CBaseEntity_ChangeTeam(GameData gamedata)
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(gamedata, SDKConf_Virtual, "CBaseEntity::ChangeTeam");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	
+
 	Handle call = EndPrepSDKCall();
 	if (!call)
 		ThrowError("Failed to create SDKCall: CBaseEntity::ChangeTeam");
-	
+
 	return call;
 }
 
@@ -149,7 +149,7 @@ float SDKCall_CBaseEntity_GetNextThink(int entity, const char[] context = "")
 {
 	if (g_sdkCall_CBaseEntity_GetNextThink)
 		return SDKCall(g_sdkCall_CBaseEntity_GetNextThink, entity, context);
-	
+
 	return TICK_NEVER_THINK;
 }
 
@@ -157,7 +157,7 @@ int SDKCall_CTFSniperRifle_GetPenetrateType(int weapon)
 {
 	if (g_sdkCall_CTFSniperRifle_GetPenetrateType)
 		return SDKCall(g_sdkCall_CTFSniperRifle_GetPenetrateType, weapon);
-	
+
 	return TF_CUSTOM_NONE;
 }
 
@@ -165,7 +165,7 @@ Address SDKCall_GetGlobalTeam(TFTeam team)
 {
 	if (g_sdkCall_GetGlobalTeam)
 		return SDKCall(g_sdkCall_GetGlobalTeam, team);
-	
+
 	return Address_Null;
 }
 
