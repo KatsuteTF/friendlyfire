@@ -46,9 +46,9 @@ The full changelog is far too big to include, but some notable changes include:
     * No special fixes required
 * **Engineer**
     * Buildings
-        * Sentry Guns now shoot all players except the builder
-        * Dispensers and Teleporters now only work for the builder
-        * Buildings are now solid to teammates
+        * ~~Sentry Guns now shoot all players except the builder~~
+        * ~~Dispensers and Teleporters now only work for the builder~~
+        * ~~Buildings are now solid to teammates~~
     * Wrench
         * Now damages your team's buildings instead of repairing them
 * **Medic**

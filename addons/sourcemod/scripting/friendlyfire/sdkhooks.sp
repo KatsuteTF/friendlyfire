@@ -69,18 +69,18 @@ void SDKHooks_HookEntity(int entity, const char[] classname)
 		SDKHooks_HookEntityInternal(entity, SDKHook_PostThinkPost, SDKHookCB_Client_PostThinkPost);
 		SDKHooks_HookEntityInternal(entity, SDKHook_OnTakeDamage, SDKHookCB_Client_OnTakeDamage);
 		SDKHooks_HookEntityInternal(entity, SDKHook_OnTakeDamagePost, SDKHookCB_Client_OnTakeDamagePost);
-		
+
 		// Makes cloaked spies fully invisible
 		SDKHooks_HookEntityInternal(entity, SDKHook_SetTransmit, SDKHookCB_Client_SetTransmit);
 	}
 	else
 	{
-		if (!strncmp(classname, "obj_", 4))
-		{
-			// Makes objects solid to teammates
-			SDKHooks_HookEntityInternal(entity, SDKHook_SpawnPost, SDKHookCB_Object_SpawnPost);
-		}
-		
+		// if (!strncmp(classname, "obj_", 4))
+		// {
+		// 	// Makes objects solid to teammates
+		// 	SDKHooks_HookEntityInternal(entity, SDKHook_SpawnPost, SDKHookCB_Object_SpawnPost);
+		// }
+
 		if (!strncmp(classname, "tf_projectile_", 14))
 		{
 			if (StrEqual(classname, "tf_projectile_cleaver") || StrEqual(classname, "tf_projectile_pipe"))
@@ -96,12 +96,12 @@ void SDKHooks_HookEntity(int entity, const char[] classname)
 				SDKHooks_HookEntityInternal(entity, SDKHook_OnTakeDamagePost, SDKHookCB_ProjectilePipeRemote_OnTakeDamagePost);
 			}
 		}
-		else if (StrEqual(classname, "obj_dispenser") || StrEqual(classname, "pd_dispenser"))
-		{
-			// Prevents Dispensers from healing teammates
-			SDKHooks_HookEntityInternal(entity, SDKHook_StartTouch, SDKHookCB_ObjectDispenser_StartTouch);
-			SDKHooks_HookEntityInternal(entity, SDKHook_StartTouchPost, SDKHookCB_ObjectDispenser_StartTouchPost);
-		}
+		// else if (StrEqual(classname, "obj_dispenser") || StrEqual(classname, "pd_dispenser"))
+		// {
+		// 	// Prevents Dispensers from healing teammates
+		// 	SDKHooks_HookEntityInternal(entity, SDKHook_StartTouch, SDKHookCB_ObjectDispenser_StartTouch);
+		// 	SDKHooks_HookEntityInternal(entity, SDKHook_StartTouchPost, SDKHookCB_ObjectDispenser_StartTouchPost);
+		// }
 		else if (StrEqual(classname, "tf_flame_manager"))
 		{
 			// Fixes Flame Throwers dealing no damage to teammates
@@ -119,7 +119,7 @@ void SDKHooks_HookEntity(int entity, const char[] classname)
 void SDKHooks_UnhookEntity(int entity)
 {
 	int ref = IsValidEdict(entity) ? EntIndexToEntRef(entity) : entity;
-	
+
 	for (int i = g_hookData.Length - 1; i >= 0; i--)
 	{
 		SDKHookData data;
@@ -137,9 +137,9 @@ static void SDKHooks_HookEntityInternal(int entity, SDKHookType type, SDKHookCB 
 	data.ref = IsValidEdict(entity) ? EntIndexToEntRef(entity) : entity;
 	data.type = type;
 	data.callback = callback;
-	
+
 	g_hookData.PushArray(data);
-	
+
 	SDKHook(entity, type, callback);
 }
 
@@ -148,7 +148,7 @@ static void SDKHookCB_Client_PreThink(int client)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	// Disable radius buffs like Buff Banner or King Rune
 	Entity(client).ChangeToSpectator();
 }
@@ -158,7 +158,7 @@ static void SDKHookCB_Client_PreThinkPost(int client)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	Entity(client).ResetTeam();
 }
 
@@ -167,30 +167,30 @@ static void SDKHookCB_Client_PostThink(int client)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	// CTFPlayer::DoTauntAttack
 	if (TF2_IsPlayerInCondition(client, TFCond_Taunting))
 	{
 		g_postThinkType = PostThinkType_Spectator;
-		
+
 		// Allows taunt kill work on both teams
 		Entity(client).ChangeToSpectator();
 		return;
 	}
-	
+
 	int activeWeapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
 	if (activeWeapon == -1)
 		return;
-	
+
 	// For functions that use GetEnemyTeam(), move everyone else to the enemy team
 	for (int i = 0; i < sizeof(g_enemyItemIDs); i++)
 	{
 		if (TF2Util_GetWeaponID(activeWeapon) == g_enemyItemIDs[i])
 		{
 			g_postThinkType = PostThinkType_EnemyTeam;
-			
+
 			TFTeam enemyTeam = GetEnemyTeam(TF2_GetClientTeam(client));
-			
+
 			for (int other = 1; other <= MaxClients; other++)
 			{
 				if (IsClientInGame(other) && other != client)
@@ -200,19 +200,19 @@ static void SDKHookCB_Client_PostThink(int client)
 			}
 		}
 	}
-	
+
 	// For functions that do simple GetTeamNumber() checks, move ourselves to spectator team
 	for (int i = 0; i < sizeof(g_spectatorItemIDs); i++)
 	{
 		// Don't let losing team attack with those weapons
 		if (GameRules_GetRoundState() == RoundState_TeamWin && TF2_GetClientTeam(client) != view_as<TFTeam>(GameRules_GetProp("m_iWinningTeam")))
 			break;
-		
+
 		if (TF2Util_GetWeaponID(activeWeapon) == g_spectatorItemIDs[i])
 		{
 			g_postThinkType = PostThinkType_Spectator;
-			
-			SetActiveRound();
+
+			// SetActiveRound();
 			Entity(client).ChangeToSpectator();
 		}
 	}
@@ -223,14 +223,14 @@ static void SDKHookCB_Client_PostThinkPost(int client)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	// Change everything back to how it was accordingly
 	switch (g_postThinkType)
 	{
 		case PostThinkType_Spectator:
 		{
 			Entity(client).ResetTeam();
-			ResetActiveRound();
+			// ResetActiveRound();
 		}
 		case PostThinkType_EnemyTeam:
 		{
@@ -243,7 +243,7 @@ static void SDKHookCB_Client_PostThinkPost(int client)
 			}
 		}
 	}
-	
+
 	g_postThinkType = PostThinkType_None;
 }
 
@@ -251,11 +251,11 @@ static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	// Attacker and victim are commonly modified by other plugins, store them off
 	g_hookParams_OnTakeDamage.SetValue("victim", victim);
 	g_hookParams_OnTakeDamage.SetValue("attacker", attacker);
-	
+
 	if (IsEntityClient(attacker))
 	{
 		Entity(attacker).ChangeToSpectator();
@@ -265,7 +265,7 @@ static Action SDKHookCB_Client_OnTakeDamage(int victim, int &attacker, int &infl
 		// Mostly for boots_falling_stomp
 		Entity(victim).ChangeToSpectator();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -273,10 +273,10 @@ static void SDKHookCB_Client_OnTakeDamagePost(int victim, int attacker, int infl
 {
 	if (IsTruceActive())
 		return;
-	
+
 	g_hookParams_OnTakeDamage.GetValue("victim", victim);
 	g_hookParams_OnTakeDamage.GetValue("attacker", attacker);
-	
+
 	if (IsEntityClient(attacker))
 	{
 		Entity(attacker).ResetTeam();
@@ -291,14 +291,14 @@ static Action SDKHookCB_Client_SetTransmit(int entity, int client)
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	// Don't transmit invisible spies to living players
 	if (entity == client || !IsPlayerAlive(client))
 		return Plugin_Continue;
-	
+
 	if (GetPercentInvisible(entity) >= 1.0)
 		return Plugin_Handled;
-	
+
 	return Plugin_Continue;
 }
 
@@ -306,12 +306,12 @@ static Action SDKHookCB_ObjectDispenser_StartTouch(int entity, int other)
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	if (IsEntityClient(other) && !IsObjectFriendly(entity, other))
 	{
 		Entity(other).ChangeToSpectator();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -319,7 +319,7 @@ static void SDKHookCB_ObjectDispenser_StartTouchPost(int entity, int other)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	if (IsEntityClient(other) && !IsObjectFriendly(entity, other))
 	{
 		Entity(other).ResetTeam();
@@ -330,7 +330,7 @@ static void SDKHookCB_Object_SpawnPost(int entity)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	// Enable collisions for both teams
 	SetVariantInt(SOLID_TO_PLAYER_YES);
 	AcceptEntityInput(entity, "SetSolidToPlayer");
@@ -340,17 +340,17 @@ static Action SDKHookCB_Projectile_Touch(int entity, int other)
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	if (other == 0)
 		return Plugin_Continue;
-	
+
 	int owner = FindParentOwnerEntity(entity);
 	if (IsValidEntity(owner) && owner != other)
 	{
 		Entity(owner).ChangeToSpectator();
 		Entity(entity).ChangeToSpectator();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -358,10 +358,10 @@ static void SDKHookCB_Projectile_TouchPost(int entity, int other)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	if (other == 0)
 		return;
-	
+
 	int owner = FindParentOwnerEntity(entity);
 	if (IsValidEntity(owner) && owner != other)
 	{
@@ -374,17 +374,17 @@ static Action SDKHookCB_ProjectilePipeRemote_OnTakeDamage(int victim, int &attac
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	if (attacker != -1)
 	{
 		// We might already be in spectate from another hook, do not allow damaging our own pipebombs
 		if (FindParentOwnerEntity(victim) == attacker)
 			return Plugin_Handled;
-		
+
 		// Allows destroying projectiles (e.g. pipebombs)
 		Entity(attacker).ChangeToSpectator();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -392,12 +392,12 @@ static void SDKHookCB_ProjectilePipeRemote_OnTakeDamagePost(int victim, int atta
 {
 	if (IsTruceActive())
 		return;
-	
+
 	if (attacker != -1)
 	{
 		if (FindParentOwnerEntity(victim) == attacker)
 			return;
-		
+
 		Entity(attacker).ResetTeam();
 	}
 }
@@ -406,14 +406,14 @@ static Action SDKHookCB_FlameManager_Touch(int entity, int other)
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	int owner = FindParentOwnerEntity(entity);
 	if (IsValidEntity(owner) && owner != other)
 	{
 		// Fixes Flame Throwers during friendly fire
 		Entity(owner).ChangeToSpectator();
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -421,7 +421,7 @@ static void SDKHookCB_FlameManager_TouchPost(int entity, int other)
 {
 	if (IsTruceActive())
 		return;
-	
+
 	int owner = FindParentOwnerEntity(entity);
 	if (IsValidEntity(owner) && owner != other)
 	{
@@ -433,12 +433,12 @@ static Action SDKHookCB_GasManager_Touch(int entity, int other)
 {
 	if (IsTruceActive())
 		return Plugin_Continue;
-	
+
 	if (FindParentOwnerEntity(entity) == other)
 	{
 		// Do not coat ourselves in our own gas
 		return Plugin_Handled;
 	}
-	
+
 	return Plugin_Continue;
 }

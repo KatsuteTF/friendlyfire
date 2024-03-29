@@ -1,0 +1,35 @@
+name: Release
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Release Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install SourceMod
+        uses: KatsuteTF/Workflows/actions/setup-sourcepawn@main
+
+      - name: mkdir include
+        shell: bash
+        run: mkdir -p addons/sourcemod/include
+
+      - name: Install TF2Utils
+        uses: KatsuteTF/Workflows/actions/curl@main
+        with:
+          url: https://raw.githubusercontent.com/nosoop/SM-TFUtils/master/scripting/include/tf2utils.inc
+          file: addons/sourcemod/include/tf2utils.inc
+
+      - name: Compile Plugin
+        run: |
+          spcomp -i addons/sourcemod/include addons/sourcemod/scripting/friendlyfire.sp
+
+      - name: Deploy to GitHub Releases
+        uses: AButler/upload-release-assets@v2.0.2
+        with:
+          files: "*.smx;addons/sourcemod/gamedata/friendlyfire.txt"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

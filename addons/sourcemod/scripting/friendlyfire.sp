@@ -100,12 +100,12 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	RegPluginLibrary("friendlyfire");
-	
+
 	Entity.Initialize();
-	
+
 	ConVars_Initialize();
 	SDKHooks_Initialize();
-	
+
 	GameData gamedata = new GameData("friendlyfire");
 	if (gamedata)
 	{
@@ -141,7 +141,7 @@ public void OnPluginEnd()
 {
 	if (!g_isEnabled)
 		return;
-	
+
 	TogglePlugin(false);
 }
 
@@ -149,7 +149,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (!g_isEnabled || !g_isMapRunning)
 		return;
-	
+
 	DHooks_HookEntity(entity, classname);
 	SDKHooks_HookEntity(entity, classname);
 }
@@ -158,13 +158,13 @@ public void OnEntityDestroyed(int entity)
 {
 	if (!g_isEnabled)
 		return;
-	
+
 	SDKHooks_UnhookEntity(entity);
-	
+
 	if (Entity.IsEntityTracked(entity))
 	{
 		Entity obj = Entity(entity);
-		
+
 		// If an entity is removed while it still has a team history, we need to reset its owner's team.
 		// This can happen if the entity is deleted in-between pre-hook and post-hook callbacks e.g. from a projectile that collided with worldspawn.
 		for (int i = 0; i < obj.TeamCount; i++)
@@ -173,27 +173,27 @@ public void OnEntityDestroyed(int entity)
 			if (owner != -1)
 				obj.ResetTeam();
 		}
-		
+
 		obj.Destroy();
 	}
 }
 
-public Action TF2_OnPlayerTeleport(int client, int teleporter, bool& result)
-{
-	if (!g_isEnabled)
-		return Plugin_Continue;
-	
-	result = IsObjectFriendly(teleporter, client);
-	return Plugin_Handled;
-}
+// public Action TF2_OnPlayerTeleport(int client, int teleporter, bool& result)
+// {
+// 	if (!g_isEnabled)
+// 		return Plugin_Continue;
+//
+// 	result = IsObjectFriendly(teleporter, client);
+// 	return Plugin_Handled;
+// }
 
 void TogglePlugin(bool enable)
 {
 	g_isEnabled = enable;
-	
+
 	ConVars_Toggle(enable);
 	DHooks_Toggle(enable);
-	
+
 	int entity = -1;
 	while ((entity = FindEntityByClassname(entity, "*")) != -1)
 	{
@@ -202,13 +202,13 @@ void TogglePlugin(bool enable)
 			char classname[64];
 			if (!GetEntityClassname(entity, classname, sizeof(classname)))
 				continue;
-			
+
 			OnEntityCreated(entity, classname);
 		}
 		else
 		{
 			SDKHooks_UnhookEntity(entity);
-			
+
 			if (Entity.IsEntityTracked(entity))
 				Entity(entity).Destroy();
 		}

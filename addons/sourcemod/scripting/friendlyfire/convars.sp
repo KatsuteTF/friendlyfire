@@ -33,16 +33,16 @@ static ArrayList g_conVars;
 void ConVars_Initialize()
 {
 	g_conVars = new ArrayList(sizeof(ConVarData));
-	
+
 	CreateConVar("sm_friendlyfire_version", PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	sm_friendlyfire_medic_allow_healing = CreateConVar("sm_friendlyfire_medic_allow_healing", "0", "Whether Medics are allowed to heal teammates during friendly fire.", _, true, 0.0, true, 1.0);
 	sm_friendlyfire_avoidteammates = CreateConVar("sm_friendlyfire_avoidteammates", "0", "Controls how teammates interact when colliding.\n  0: Teammates block each other\n  1: Teammates pass through each other, but push each other away", _, true, 0.0, true, 1.0);
-	
+
 	mp_friendlyfire = FindConVar("mp_friendlyfire");
 	mp_friendlyfire.AddChangeHook(ConVarChanged_FriendlyFire);
-	
-	ConVars_AddConVar("tf_avoidteammates", _, sm_friendlyfire_avoidteammates);
-	ConVars_AddConVar("tf_spawn_glows_duration", "0");
+
+	// ConVars_AddConVar("tf_avoidteammates", _, sm_friendlyfire_avoidteammates);
+	// ConVars_AddConVar("tf_spawn_glows_duration", "0");
 }
 
 void ConVars_Toggle(bool enable)
@@ -72,18 +72,18 @@ static void ConVars_AddConVar(const char[] name, const char[] value = "", ConVar
 		LogError("Failed to find convar with name %s", name);
 		return;
 	}
-	
+
 	if (!value[0] && !relatedConVar)
 	{
 		LogError("Invalid data for convar with name %s", name);
 		return;
 	}
-	
+
 	ConVarData data;
 	strcopy(data.name, sizeof(data.name), name);
 	strcopy(data.value, sizeof(data.value), value);
 	data.relatedConVar = relatedConVar;
-	
+
 	g_conVars.PushArray(data);
 }
 
@@ -92,29 +92,29 @@ static void ConVars_Enable(const char[] name)
 	int index = g_conVars.FindString(name);
 	if (index == -1)
 		return;
-	
+
 	ConVarData data;
 	if (g_conVars.GetArray(index, data))
 	{
 		ConVar convar = FindConVar(data.name);
 		if (!convar)
 			return;
-		
+
 		// Store the current value so we can reset the convar on disable
 		convar.GetString(data.initialValue, sizeof(data.initialValue));
-		
+
 		// Copy the value from the setting convar if it isn't set
 		if (!data.value[0] && data.relatedConVar)
 		{
 			char value[COMMAND_MAX_LENGTH];
 			data.relatedConVar.GetString(value, sizeof(value));
 			strcopy(data.value, sizeof(data.value), value);
-			
+
 			data.relatedConVar.AddChangeHook(OnRelatedConVarChanged);
 		}
-		
+
 		g_conVars.SetArray(index, data);
-		
+
 		// Update the current value
 		convar.SetString(data.value);
 		convar.AddChangeHook(OnConVarChanged);
@@ -126,23 +126,23 @@ static void ConVars_Disable(const char[] name)
 	int index = g_conVars.FindString(name);
 	if (index == -1)
 		return;
-	
+
 	ConVarData data;
 	if (g_conVars.GetArray(index, data))
 	{
 		ConVar convar = FindConVar(data.name);
 		if (!convar)
 			return;
-		
+
 		// Restore the old convar value
 		convar.RemoveChangeHook(OnConVarChanged);
 		convar.SetString(data.initialValue);
-		
+
 		if (data.relatedConVar)
 		{
 			data.value[0] = EOS;
 			data.relatedConVar.RemoveChangeHook(OnRelatedConVarChanged);
-			
+
 			g_conVars.SetArray(index, data);
 		}
 	}
@@ -152,11 +152,11 @@ static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 {
 	char name[COMMAND_MAX_LENGTH];
 	convar.GetName(name, sizeof(name));
-	
+
 	int index = g_conVars.FindString(name);
 	if (index == -1)
 		return;
-	
+
 	ConVarData data;
 	if (g_conVars.GetArray(index, data))
 	{
@@ -165,7 +165,7 @@ static void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 			// Update value to reset
 			strcopy(data.initialValue, sizeof(data.initialValue), newValue);
 			g_conVars.SetArray(index, data);
-			
+
 			// Restore our desired value
 			convar.SetString(oldValue);
 		}
@@ -177,14 +177,14 @@ static void OnRelatedConVarChanged(ConVar convar, const char[] oldValue, const c
 	int index = g_conVars.FindValue(convar, ConVarData::relatedConVar);
 	if (index == -1)
 		return;
-	
+
 	ConVarData data;
 	if (g_conVars.GetArray(index, data))
 	{
 		ConVar actualConVar = FindConVar(data.name);
 		if (!actualConVar)
 			return;
-		
+
 		actualConVar.RemoveChangeHook(OnConVarChanged);
 		actualConVar.SetString(newValue);
 		actualConVar.AddChangeHook(OnConVarChanged);
