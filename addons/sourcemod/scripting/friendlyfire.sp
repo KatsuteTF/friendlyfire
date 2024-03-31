@@ -25,12 +25,10 @@
 #include <tf2_stocks>
 #include <tf2utils>
 
-#define PLUGIN_VERSION	"1.1.3"
+#define PLUGIN_VERSION	"1.2.5"
 
 #define TICK_NEVER_THINK	-1.0
-
 #define TF_CUSTOM_NONE		0
-
 #define TF_GAMETYPE_ARENA	4
 
 enum
@@ -78,13 +76,14 @@ enum
 
 ConVar mp_friendlyfire;
 ConVar sm_friendlyfire_medic_allow_healing;
+ConVar sm_friendlyfire_avoidteammates;
 
 bool g_isEnabled;
 bool g_isMapRunning;
 
 #include "friendlyfire/convars.sp"
-#include "friendlyfire/data.sp"
 #include "friendlyfire/dhooks.sp"
+#include "friendlyfire/entity.sp"
 #include "friendlyfire/sdkcalls.sp"
 #include "friendlyfire/sdkhooks.sp"
 #include "friendlyfire/util.sp"
@@ -101,6 +100,8 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	RegPluginLibrary("friendlyfire");
+
+	Entity.Initialize();
 
 	ConVars_Initialize();
 	SDKHooks_Initialize();
@@ -144,22 +145,13 @@ public void OnPluginEnd()
 	TogglePlugin(false);
 }
 
-public void OnClientPutInServer(int client)
-{
-	if (!g_isEnabled)
-		return;
-
-	DHooks_OnClientPutInServer(client);
-	SDKHooks_OnClientPutInServer(client);
-}
-
 public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (!g_isEnabled || !g_isMapRunning)
 		return;
 
-	DHooks_OnEntityCreated(entity, classname);
-	SDKHooks_OnEntityCreated(entity, classname);
+	DHooks_HookEntity(entity, classname);
+	SDKHooks_HookEntity(entity, classname);
 }
 
 public void OnEntityDestroyed(int entity)
@@ -167,28 +159,30 @@ public void OnEntityDestroyed(int entity)
 	if (!g_isEnabled)
 		return;
 
-	if (!IsValidEntity(entity))
-		return;
+	SDKHooks_UnhookEntity(entity);
 
-	// If an entity was removed prematurely, reset its owner's team as far back as we need to.
-	// This can happen with projectiles when they collide with the world, not calling the post-hook.
-	for (int i = 0; i < Entity(entity).TeamCount; i++)
+	if (Entity.IsEntityTracked(entity))
 	{
-		int owner = FindParentOwnerEntity(entity);
-		if (owner != -1)
-		{
-			Entity(owner).ResetTeam();
-		}
-	}
+		Entity obj = Entity(entity);
 
-	Entity(entity).Destroy();
+		// If an entity is removed while it still has a team history, we need to reset its owner's team.
+		// This can happen if the entity is deleted in-between pre-hook and post-hook callbacks e.g. from a projectile that collided with worldspawn.
+		for (int i = 0; i < obj.TeamCount; i++)
+		{
+			int owner = FindParentOwnerEntity(entity);
+			if (owner != -1)
+				obj.ResetTeam();
+		}
+
+		obj.Destroy();
+	}
 }
 
 // public Action TF2_OnPlayerTeleport(int client, int teleporter, bool& result)
 // {
 // 	if (!g_isEnabled)
 // 		return Plugin_Continue;
-
+//
 // 	result = IsObjectFriendly(teleporter, client);
 // 	return Plugin_Handled;
 // }
@@ -200,34 +194,23 @@ void TogglePlugin(bool enable)
 	ConVars_Toggle(enable);
 	DHooks_Toggle(enable);
 
-	if (enable)
+	int entity = -1;
+	while ((entity = FindEntityByClassname(entity, "*")) != -1)
 	{
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (!IsClientInGame(client))
-				continue;
-
-			OnClientPutInServer(client);
-		}
-
-		int entity = -1;
-		while ((entity = FindEntityByClassname(entity, "*")) != -1)
+		if (enable)
 		{
 			char classname[64];
-			if (GetEntityClassname(entity, classname, sizeof(classname)))
-			{
-				OnEntityCreated(entity, classname);
-			}
-		}
-	}
-	else
-	{
-		for (int client = 1; client <= MaxClients; client++)
-		{
-			if (!IsClientInGame(client))
+			if (!GetEntityClassname(entity, classname, sizeof(classname)))
 				continue;
 
-			SDKHooks_UnhookClient(client);
+			OnEntityCreated(entity, classname);
+		}
+		else
+		{
+			SDKHooks_UnhookEntity(entity);
+
+			if (Entity.IsEntityTracked(entity))
+				Entity(entity).Destroy();
 		}
 	}
 }
